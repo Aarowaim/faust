@@ -1,0 +1,8 @@
+[package]
+name = "faust_brainfuck"
+version = "0.1.0"
+authors = ["Aaron3468 <lip@ualberta.ca>"]
+
+[dependencies]
+ascii = "*"
+time = "*"
