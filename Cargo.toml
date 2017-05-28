@@ -6,3 +6,4 @@ authors = ["Aaron3468 <lip@ualberta.ca>"]
 [dependencies]
 ascii = "*"
 time = "*"
+yaml-rust="*"
