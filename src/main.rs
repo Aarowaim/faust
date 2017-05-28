@@ -1,12 +1,14 @@
 use std::env;
+use std::cmp;
 use std::path::Path;
 use std::fs::File;
 use std::io::{self, Read, Write, stdout};
 
-mod lexer;
-mod parser;
 #[macro_use]
 mod benchmark;
+
+mod lexer;
+mod parser;
 
 fn get_input_line() -> String {    
     let mut input = String::new();
@@ -15,8 +17,8 @@ fn get_input_line() -> String {
 }
 
 /* fn get_input_char() -> char {
-    std::io::stdin().lock().chars().next()
-} */
+    std::io::stdin().chars().next().unwrap().ok().unwrap()
+}
 
 struct Brainfuck {
     code: String,
@@ -39,7 +41,7 @@ impl Brainfuck {
 
         }
     }
-}
+} */
 
 fn read_file_as_string<P: AsRef<Path>>(path: P) -> String {
     let f = File::open(path);
@@ -49,7 +51,7 @@ fn read_file_as_string<P: AsRef<Path>>(path: P) -> String {
     String::from(input.trim())
 }
 
-fn intro() -> String {
+fn welcome() -> String {
     println!("Brainfuck interpreter");
 
     let args: Vec<_> = env::args().collect();
@@ -98,26 +100,47 @@ fn strip_chars(code: &String) -> String {
     s
 }
 
+fn clamp(val: usize, min_val: usize, max_val: usize) -> usize {
+    cmp::max(cmp::min(max_val, val), min_val)
+}
+
 #[inline]
 fn interpret_loop(code: &String) {
     let jumps = make_jumptable(&code);
 
     let mut code_pos = 0;
     
+    const SIZE: usize = 30000;
     let mut tape = vec![0u8; 30000];
     let mut tape_pos = 0;
 
+    let mut in_buffer = String::from("");
+
     while code_pos < code.len() {
-        // println!("position:\t{}\ncharacter:\t{}", code_pos, code.chars().nth(code_pos).unwrap());
+        
         match code.chars().nth(code_pos) {
             // Basic Commands
             Some('+') => tape[tape_pos] = tape[tape_pos].wrapping_add(1),
             Some('-') => tape[tape_pos] = tape[tape_pos].wrapping_sub(1),
-            Some('>') => tape_pos = tape_pos.wrapping_add(1),
-            Some('<') => tape_pos = tape_pos.wrapping_sub(1),
+            Some('>') => tape_pos = clamp(tape_pos, 0, SIZE - 1) + 1,
+            Some('<') => tape_pos = clamp(tape_pos, 1, SIZE) - 1,
 
             // Input/Output
-            Some(',') => {},
+            Some(',') => {
+                if in_buffer.len() <= 0 {
+                    println!();
+                    in_buffer += &get_input_line();
+                };
+                if in_buffer.len() > 0 {
+                    tape[tape_pos] = match in_buffer.chars().nth(0) {
+                        Some(char) => {
+                            in_buffer.remove(0);
+                            char
+                        },
+                        None => panic!("Exited by user"),
+                    } as u8;
+                }
+            },
             Some('.') => {
                 print!("{}", tape[tape_pos as usize] as char);
                 stdout().flush().expect("Failed to write buffered output to stdout");
@@ -139,8 +162,8 @@ fn interpret_loop(code: &String) {
 }
 
 fn main() {
-    let code = strip_chars(&intro());
+    let code = strip_chars(&welcome());
 
-    let exec_time = benchmark_avg!{15, { interpret_loop(&code); }};
-    println!("Time taken {}", exec_time);
+    let exec_time = benchmark!{{ interpret_loop(&code); }};
+    println!("Time taken {} ms", exec_time);
 }

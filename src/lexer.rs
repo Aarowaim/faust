@@ -1,5 +1,9 @@
 use std::collections::HashMap;
 
+struct BfNode {
+	commands: Option<BfCommand>,
+}
+
 enum BfCommand {
 	Forward,		// >
 	Back,			// <
