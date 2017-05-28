@@ -101,7 +101,6 @@ fn strip_chars(code: &String) -> String {
 #[inline]
 fn interpret_loop(code: &String) {
     let jumps = make_jumptable(&code);
-    let mut accumulator: u64 = 0;
 
     let mut code_pos = 0;
     
@@ -134,7 +133,6 @@ fn interpret_loop(code: &String) {
             _ => {},
         }
         code_pos += 1;
-        accumulator += 1;
     }
     print!("\n");
 
@@ -142,9 +140,7 @@ fn interpret_loop(code: &String) {
 
 fn main() {
     let code = strip_chars(&intro());
-    
-    named_benchmark!{ 5+4,
-        interpret_loop(&code);
-    }
-	
+
+    let exec_time = benchmark_avg!{15, { interpret_loop(&code); }};
+    println!("Time taken {}", exec_time);
 }
