@@ -7,8 +7,9 @@ use std::io::{self, Read, Write, stdout};
 #[macro_use]
 mod benchmark;
 
-mod lexer;
+mod frontend;
 mod optimizer;
+mod interpreter;
 
 fn get_input_line() -> String {    
     let mut input = String::new();
@@ -165,6 +166,8 @@ fn interpret_loop(code: &String) {
 }
 
 fn main() {
+
+    frontend::brainfuck::test(&read_file_as_string(Path::new("examples\\mandelbrot.b")));
     let code = strip_chars(&welcome());
 
     let exec_time = benchmark!{{ interpret_loop(&code); }};
