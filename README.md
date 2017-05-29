@@ -1,8 +1,7 @@
 # Faust
 ## An Awful Interpreter for an Awful Language
-Just in case you haven't had your fill of brainfuck, here's my humble interpreter project.
-I promise it's not going to be noteworthy. 
-However it is a learning milestone for me.
+Just in case you haven't had your fill of brainfuck, here's my humble interpreter.
+It is a learning milestone for me, so I promise it's not going to be noteworthy. 
 
 So far there are a few things that I'm quite pleased with:
 
@@ -10,11 +9,12 @@ So far there are a few things that I'm quite pleased with:
 - It executes code from both files and user input.
 - It is legible.
 
-Trivial programs execute within milliseconds.
 Erik Bosman's infamous [mandelbrot.b](http://esoteric.sange.fi/brainfuck/utils/mandelbrot/) pushes interpreters to their limit.
 The sheer complexity is a ripe target for optimizations, and in fact the program was written with significant help in the form of a higher-level brainfuck.
 
 `benchmark!` shows that mandelbrot.b takes *26956892 milliseconds* or *7.5 hours* to finish. In `--release` mode. *\*shiver\**
+
+Trivial programs execute within milliseconds.
 
 ## Goals
 My primary goal is to execute mandelbrot.b within 10 seconds using only code transformations.
