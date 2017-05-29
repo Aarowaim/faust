@@ -8,6 +8,7 @@ So far there are a few things that I'm quite pleased with:
 - It contains a benchmarking macro that was hard-won from studying the esoteric macro language within rust.
 - It executes code from both files and user input.
 - It is legible.
+- It doesn't use recursion, so it is stack-safe, even with very large brainfuck programs.
 
 Erik Bosman's infamous [mandelbrot.b](http://esoteric.sange.fi/brainfuck/utils/mandelbrot/) pushes interpreters to their limit.
 The sheer complexity is a ripe target for optimizations, and in fact the program was written with significant help in the form of a higher-level brainfuck.
