@@ -8,7 +8,7 @@ use std::io::{self, Read, Write, stdout};
 mod benchmark;
 
 mod lexer;
-mod parser;
+mod optimizer;
 
 fn get_input_line() -> String {    
     let mut input = String::new();
@@ -118,42 +118,45 @@ fn interpret_loop(code: &String) {
 
     while code_pos < code.len() {
         
-        match code.chars().nth(code_pos) {
-            // Basic Commands
-            Some('+') => tape[tape_pos] = tape[tape_pos].wrapping_add(1),
-            Some('-') => tape[tape_pos] = tape[tape_pos].wrapping_sub(1),
-            Some('>') => tape_pos = clamp(tape_pos, 0, SIZE - 1) + 1,
-            Some('<') => tape_pos = clamp(tape_pos, 1, SIZE) - 1,
+        if let Some(c) = code.chars().nth(code_pos) {
+            match c {
+                // Basic Commands
+                '+' => tape[tape_pos] = tape[tape_pos].wrapping_add(1),
+                '-' => tape[tape_pos] = tape[tape_pos].wrapping_sub(1),
+                '>' => tape_pos = clamp(tape_pos, 0, SIZE - 1) + 1,
+                '<' => tape_pos = clamp(tape_pos, 1, SIZE) - 1,
 
-            // Input/Output
-            Some(',') => {
-                if in_buffer.len() <= 0 {
-                    println!();
-                    in_buffer += &get_input_line();
-                };
-                if in_buffer.len() > 0 {
-                    tape[tape_pos] = match in_buffer.chars().nth(0) {
-                        Some(char) => {
-                            in_buffer.remove(0);
-                            char
-                        },
-                        None => panic!("Exited by user"),
-                    } as u8;
-                }
-            },
-            Some('.') => {
-                print!("{}", tape[tape_pos as usize] as char);
-                stdout().flush().expect("Failed to write buffered output to stdout");
-            },
+                // Input/Output
+                ',' => {
+                    if in_buffer.len() <= 0 {
+                        println!();
+                        in_buffer += &get_input_line();
+                    };
+                    if in_buffer.len() > 0 {
+                        tape[tape_pos] = match in_buffer.chars().nth(0) {
+                            Some(char) => {
+                                in_buffer.remove(0);
+                                char
+                            },
+                            None => panic!("Exited by user"),
+                        } as u8;
+                    }
+                },
+                '.' => {
+                    print!("{}", tape[tape_pos as usize] as char);
+                    stdout().flush().expect("Failed to write buffered output to stdout");
+                },
 
-            // Loop/Branch Commands
-            Some('[') => if tape[tape_pos] == 0 {
-                code_pos = jumps[code_pos];
-            },
-            Some(']') => if tape[tape_pos] != 0 {
-                code_pos = jumps[code_pos];
-            },
-            _ => {},
+                // Loop/Branch Commands
+                '[' => if tape[tape_pos] == 0 {
+                    code_pos = jumps[code_pos];
+                },
+                ']' => if tape[tape_pos] != 0 {
+                    code_pos = jumps[code_pos];
+                },
+                _ => {},
+
+            }
         }
         code_pos += 1;
     }
