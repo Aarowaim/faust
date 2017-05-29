@@ -24,3 +24,9 @@ In particular, debugger and threading support would be awesome.
 Among the smaller goals is support for brainfuck [synonyms](http://esolangs.org/wiki/TrivialBrainfuckSubstitution) such as [Ook!](http://esolangs.org/wiki/Ook!).
 
 With the knowledge this project brings, I hope to make a toy language and other potentially useful interpreters.
+
+## How to Compile & Run
+1. clone the github repository to a local directory using `git clone https://github.com/Aarowaim/faust.git` or by downloading the repository as a zip and extracting it.
+2. Go to the extracted directory and use rust's cargo: `cargo build --release`.
+3. You may now run it using `cargo run --release`, followed by an optional file containing brainfuck code. If no arguments are given you will later be prompted for a line of input to be executed as brainfuck code. You may run any of the examples from the example folder by calling `cargo run --release examples\<filename>`. To run mandelbrot, which will be my benchmark, the command is `cargo run --release examples\mandelbrot.b`. Try running `rot13.b` or `sierpinski.b` if you don't want to wait so long.
+4. If you choose to compile without cargo, `rustc` will produce a target directory containing the executable `faust_brainfuck`.
