@@ -19,7 +19,10 @@ enum Token {
 
 }
 
+<<<<<<< HEAD
 #[derive(Clone)]
+=======
+>>>>>>> origin/master
 enum SpecialToken {
 	// Syntactic Elements
 	Value(usize),
