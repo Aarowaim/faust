@@ -1,5 +1,4 @@
 macro_rules! benchmark {
-	() => { 0u64 };
     ($b:block) => {{
     	use std::time::Instant;
     	let initial_t = Instant::now();

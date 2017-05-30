@@ -8,11 +8,11 @@ use std::io::{self, Read, Write, stdout};
 mod benchmark;
 
 mod frontend;
-mod optimizer;
 mod interpreter;
 
 fn get_input_line() -> String {    
     let mut input = String::new();
+    println!();
     io::stdin().read_line(&mut input).expect("Error reading input.");
     String::from(input.trim())
 }
@@ -53,16 +53,16 @@ fn read_file_as_string<P: AsRef<Path>>(path: P) -> String {
 }
 
 fn welcome() -> String {
-    println!("Brainfuck interpreter");
+    println!("Faust Brainfuck Interpreter\n");
 
     let args: Vec<_> = env::args().collect();
     
     if args.len() > 1 {
-        println!("Reading from file.");
+        println!("Reading file...");
     	read_file_as_string(&args[1])
     } else {
-    	println!("Trying input");
-    	get_input_line()
+    	print!("Enter a brainfuck program:");
+        get_input_line()
     }
 }
 
@@ -101,8 +101,8 @@ fn strip_chars(code: &String) -> String {
     s
 }
 
-fn clamp(val: usize, min_val: usize, max_val: usize) -> usize {
-    cmp::max(cmp::min(max_val, val), min_val)
+fn clamp(val: isize, min_val: usize, max_val: usize) -> usize {
+    cmp::max(cmp::min(max_val as isize - 1, val), min_val as isize) as usize
 }
 
 #[inline]
@@ -124,13 +124,12 @@ fn interpret_loop(code: &String) {
                 // Basic Commands
                 '+' => tape[tape_pos] = tape[tape_pos].wrapping_add(1),
                 '-' => tape[tape_pos] = tape[tape_pos].wrapping_sub(1),
-                '>' => tape_pos = clamp(tape_pos, 0, SIZE - 1) + 1,
-                '<' => tape_pos = clamp(tape_pos, 1, SIZE) - 1,
+                '>' => tape_pos = clamp(tape_pos as isize + 1, 0, SIZE),
+                '<' => tape_pos = clamp(tape_pos as isize - 1, 0, SIZE),
 
                 // Input/Output
                 ',' => {
                     if in_buffer.len() <= 0 {
-                        println!();
                         in_buffer += &get_input_line();
                     };
                     if in_buffer.len() > 0 {
@@ -167,7 +166,9 @@ fn interpret_loop(code: &String) {
 
 fn main() {
 
-    frontend::brainfuck::test(&read_file_as_string(Path::new("examples\\mandelbrot.b")));
+    frontend::brainfuck::test(
+        &read_file_as_string(
+        Path::new(&String::from("examples\\hanoi.b"))));
     let code = strip_chars(&welcome());
 
     let exec_time = benchmark!{{ interpret_loop(&code); }};

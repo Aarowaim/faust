@@ -1,7 +1,8 @@
 use frontend::*;
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 enum Token {
 	// Standard Instructions
 	Forward,			// >
@@ -11,116 +12,82 @@ enum Token {
 
 	Output,				// .
 	Input,				// ,
-	SkipZero,			// [
-	RewindNotZero,		// ]
-
-	More(SpecialToken),
-
-}
-
-#[derive(Clone, PartialEq)]
-enum SpecialToken {
+	JumpEqualZero,		// [
+	JumpNotZero,		// ]
 
 	// Developer Instructions
-	DebugPrint,			// # - print a few cells
-	ToggleStream,		// ! - Buffer characters to input for ,
-
+	DebugPrint,			// # - Print a few cells
 	Breakpoint,			// # - Debugger Breakpoint
+
+	ToggleBuffer,		// ! - Buffer characters to input for ,
+	Buffer(String),
+}
+
+impl Display for Token {
+	fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "<{:?}>", self)
+    }
 }
 
 impl Frontend for HashMap<String, Token> {
 
-	fn to_faust(&self, code: &String) -> Vec<FaustInstruction> {
+	fn basic(&self, code: &String) -> Vec<FaustCmd> {
 		let mut tokens = Vec::new();
+		let mut is_buffering = false;
+		let mut buf = String::new();
 
 		for c in code.chars() {
+
 			if let Some(t) = self.get(&c.to_string()) {
+
+				if t == &Token::ToggleBuffer {
+
+					if is_buffering {
+
+						tokens.push(Token::Buffer(buf));
+						buf = String::new();
+					}
+					is_buffering = !is_buffering;
+				}
 				tokens.push(t.clone());
+
+			} else if is_buffering {
+
+				buf += &c.to_string();
 			}
 		}
-		compile(tokens)
-	}
-
-}
-
-fn condense(t: Token, n: usize) -> Option<FaustInstruction> {
-	match t {
-		Token::Add => {
-			println!("<Add> {}", n);
-			Some(FaustInstruction::Add(n))
-		},
-		Token::Sub => {
-			println!("<Sub> {}", n);
-			Some(FaustInstruction::Sub(n))
-		},
-		Token::Forward => {
-			println!("<Skip> {}", n);
-			Some(FaustInstruction::Skip(n))
-		},
-		Token::Back => {
-			println!("<Rewind> {}", n);
-			Some(FaustInstruction::Rewind(n))
-		},
-		_ => {
-			None
-		},
+		translate(tokens)
 	}
 }
 
-fn lookup(t: Token) -> Option<FaustInstruction> {
-	match t {
-		Token::Add => {
-			Some(FaustInstruction::Add(1))
-		},
-		Token::Sub => {
-			Some(FaustInstruction::Sub(1))
-		},
-		Token::Forward => {
-			Some(FaustInstruction::Skip(1))
-		},
-		Token::Back => {
-			Some(FaustInstruction::Rewind(1))
-		},
-		_ => {
-			None
-		},
-	}
-}
-
-fn compile(tokens: Vec<Token>) -> Vec<FaustInstruction> {
+fn translate(tokens: Vec<Token>) -> Vec<FaustCmd> {
 	let mut instructions = Vec::new();
-	let mut i = 0;
 
-	while i < tokens.len() {
-		let mut accumulator = 0;
-		let current = tokens[i].clone();
+	for t in tokens {
+		let inst = match t {
+			Token::Forward			=> FaustCmd::Repeatable(BasicCmd::Skip, 1),
+			Token::Back				=> FaustCmd::Repeatable(BasicCmd::Rewind, 1),
+			Token::Add 				=> FaustCmd::Repeatable(BasicCmd::Add, 1),
+			Token::Sub				=> FaustCmd::Repeatable(BasicCmd::Sub, 1),
 
-		match current {
-			Token::Add | Token::Sub |
-			Token::Forward | Token::Back => {	
+			Token::Output 			=> FaustCmd::Output,
+			Token::Input 			=> FaustCmd::Input,
+			Token::JumpEqualZero 	=> FaustCmd::JumpEqualZero,
+			Token::JumpNotZero 		=> FaustCmd::JumpNotZero,
 
-				while i < tokens.len() && tokens[i] == current {
-					accumulator += 1;
-					i += 1;
-				} 	i -= 1; // outer loop already performs one increment
+			Token::DebugPrint		=> FaustCmd::DebugPrint,
+			Token::Breakpoint		=> FaustCmd::Breakpoint,
 
-				if let Some(instruction) = condense(current, accumulator) {
-					instructions.push(instruction);
-				}
-			},
-			_ => {
-				// Handle bracket simplification without recursion
-				// The brainfuck programs worth interpreting will
-				// cause overflows if nested calls occur
-			},
-		}
-		i += 1;
+			Token::ToggleBuffer		=> FaustCmd::ToggleBuffer,
+			Token::Buffer(s)		=> FaustCmd::Buffer(s),
+
+		};
+		instructions.push(inst);
 	}
-
 	instructions
 }
 
-fn vanilla_brainfuck(code: &String) -> Vec<FaustInstruction> {
+fn vanilla_brainfuck(code: &String) -> Vec<FaustCmd> {
 	let mut m = HashMap::new();
 
 	m.insert('>'.to_string(), Token::Forward);
@@ -130,10 +97,13 @@ fn vanilla_brainfuck(code: &String) -> Vec<FaustInstruction> {
 
 	m.insert('.'.to_string(), Token::Output);
 	m.insert(','.to_string(), Token::Input);
-	m.insert('['.to_string(), Token::SkipZero);
-	m.insert(']'.to_string(), Token::RewindNotZero);
+	m.insert('['.to_string(), Token::JumpEqualZero);
+	m.insert(']'.to_string(), Token::JumpNotZero);
+	m.insert('!'.to_string(), Token::ToggleBuffer);
 
-	m.to_faust(code)
+	let instructions = m.optimize(code);
+
+	instructions
 }
 
 pub fn test(code: &String) {
