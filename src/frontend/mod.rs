@@ -4,7 +4,7 @@ mod optimizer;
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone, PartialEq, Debug)]
-enum BasicCmd {
+pub enum BasicCmd {
 	Skip,
 	Rewind,
 	Add,
@@ -17,9 +17,20 @@ impl Display for BasicCmd {
     }
 }
 
+// workaround because FaustCmd::Repeatable is 'not a valid type'
+#[derive(Clone, PartialEq, Debug)]
+pub struct Repeatable(BasicCmd, usize);
+
+impl Display for Repeatable {
+	fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum FaustCmd {
 	Repeatable(BasicCmd, usize),
+	Addressed(Repeatable, usize),
 	Clear,
 
 	Output,
@@ -50,7 +61,6 @@ trait Frontend {
 	fn basic(&self, code: &String) -> Vec<FaustCmd>;
 
 	fn optimize(&self, code: &String) -> Vec<FaustCmd> {
-		use self::optimizer::*;
 		optimizer::full_optimize(self.basic(code))
 	}
 }

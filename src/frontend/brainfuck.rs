@@ -87,7 +87,7 @@ fn translate(tokens: Vec<Token>) -> Vec<FaustCmd> {
 	instructions
 }
 
-fn vanilla_brainfuck(code: &String) -> Vec<FaustCmd> {
+pub fn vanilla_brainfuck(code: &String) -> Vec<FaustCmd> {
 	let mut m = HashMap::new();
 
 	m.insert('>'.to_string(), Token::Forward);
@@ -104,8 +104,4 @@ fn vanilla_brainfuck(code: &String) -> Vec<FaustCmd> {
 	let instructions = m.optimize(code);
 
 	instructions
-}
-
-pub fn test(code: &String) {
-	vanilla_brainfuck(code);
 }

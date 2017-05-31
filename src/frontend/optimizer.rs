@@ -4,15 +4,7 @@ pub fn full_optimize<T>(instructions: T) -> Vec<FaustCmd>
 where T: Into<Vec<FaustCmd>> {
 	let mut temp = instructions.into();
 	temp = trim_right(&temp);
-	for t in &temp {
-		println!("{}", t);
-	}
 	temp = condense(&temp);
-
-	for t in &temp {
-		println!("{}", t);
-	}
-
 	temp
 }
 
