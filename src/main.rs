@@ -40,6 +40,8 @@ fn welcome() -> String {
 fn main() {
     let code = &welcome();
 
-    let exec_time = benchmark!{{ interpreter::test(code); }};
-    println!("Time taken {} ms", exec_time);
+    //let exec_time = benchmark!{{ interpreter::test(code); }};
+    //println!("Time taken {} ms", exec_time);
+
+    interpreter::test(code);
 }

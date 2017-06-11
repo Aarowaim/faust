@@ -61,10 +61,10 @@ impl Frontend for HashMap<String, Token> {
 }
 
 fn translate(tokens: Vec<Token>) -> Vec<FaustCmd> {
-	let mut instructions = Vec::new();
+	let mut commands = Vec::new();
 
 	for t in tokens {
-		let inst = match t {
+		let cmd = match t {
 			Token::Forward			=> FaustCmd::Repeatable(BasicCmd::Skip, 1),
 			Token::Back				=> FaustCmd::Repeatable(BasicCmd::Rewind, 1),
 			Token::Add 				=> FaustCmd::Repeatable(BasicCmd::Add, 1),
@@ -82,24 +82,29 @@ fn translate(tokens: Vec<Token>) -> Vec<FaustCmd> {
 			Token::Buffer(s)		=> FaustCmd::Buffer(s),
 
 		};
-		instructions.push(inst);
+		commands.push(cmd);
 	}
-	instructions
+	commands
 }
 
 pub fn vanilla_brainfuck(code: &String) -> Vec<FaustCmd> {
 	let mut m = HashMap::new();
 
-	m.insert('>'.to_string(), Token::Forward);
-	m.insert('<'.to_string(), Token::Back);
-	m.insert('+'.to_string(), Token::Add);
-	m.insert('-'.to_string(), Token::Sub);
+	let pairs = vec!{
+		('>', Token::Forward), 
+		('<', Token::Back),
+		('+', Token::Add),
+		('-', Token::Sub),
+		('.', Token::Output),
+		('[', Token::JumpEqualZero),
+		(']', Token::JumpNotZero),
+		('!', Token::ToggleBuffer)};
 
-	m.insert('.'.to_string(), Token::Output);
-	m.insert(','.to_string(), Token::Input);
-	m.insert('['.to_string(), Token::JumpEqualZero);
-	m.insert(']'.to_string(), Token::JumpNotZero);
-	m.insert('!'.to_string(), Token::ToggleBuffer);
+	for p in pairs {
+		let (symbol, token) = p;
+		m.insert(symbol.to_string(), token);
+	};
+
 
 	let instructions = m.optimize(code);
 

@@ -15,7 +15,8 @@ struct Brainfuck {
 
 fn get_input_line() -> String {    
     let mut input = String::new();
-    println!();
+    print!("\ninput> ");
+    stdout().flush().expect("Failed to write buffered output to stdout");
     io::stdin().read_line(&mut input).expect("Error reading input.");
     String::from(input.trim())
 }
@@ -55,6 +56,8 @@ impl Brainfuck {
                             BasicCmd::Skip => self.tape_pos = clamp(self.tape_pos as isize + n as isize, 0, SIZE),
                             BasicCmd::Rewind => self.tape_pos = clamp(self.tape_pos as isize - n as isize, 0, SIZE),
                         },
+                    FaustCmd::Clear => self.tape[self.tape_pos] = 0,
+
                     // Input/Output
                     FaustCmd::Input => {
                         if in_buffer.len() <= 0 {
@@ -119,6 +122,10 @@ impl Brainfuck {
 
 pub fn test(code: &String) {
     let mut bf = Brainfuck::new(brainfuck::vanilla_brainfuck(code));
-    bf.interpret();
+    let exec_time = benchmark! {{
+        bf.interpret(); 
+    }};
+
+    println!("Time taken {} ms", exec_time);
     
 }
