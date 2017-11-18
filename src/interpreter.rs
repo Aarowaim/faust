@@ -48,6 +48,13 @@ impl Brainfuck {
             
             if let Some(c) = self.code.iter().nth(self.code_pos) {
                 match c.clone() {
+                    // Loop/Branch Commands
+                    FaustCmd::JumpEqualZero => if self.tape[self.tape_pos] == 0 {
+                        self.code_pos = self.jumps[self.code_pos];
+                    },
+                    FaustCmd::JumpNotZero => if self.tape[self.tape_pos] != 0 {
+                        self.code_pos = self.jumps[self.code_pos];
+                    },
                     // Basic Commands
                     FaustCmd::Repeatable(cmd, n) 
                         => match cmd.clone() {
@@ -76,14 +83,6 @@ impl Brainfuck {
                     FaustCmd::Output => {
                         print!("{}", self.tape[self.tape_pos] as u8 as char);
                         stdout().flush().expect("Failed to write buffered output to stdout");
-                    },
-
-                    // Loop/Branch Commands
-                    FaustCmd::JumpEqualZero => if self.tape[self.tape_pos] == 0 {
-                        self.code_pos = self.jumps[self.code_pos];
-                    },
-                    FaustCmd::JumpNotZero => if self.tape[self.tape_pos] != 0 {
-                        self.code_pos = self.jumps[self.code_pos];
                     },
                     _ => {},
 
