@@ -16,7 +16,7 @@ The sheer complexity is a ripe target for optimizations, and in fact the program
 ## `benchmark!` results in release mode
 - Once upon a time, mandelbrot.b interpreted character-by-character took *26956892 milliseconds* (*7.5 hours*) to finish.
 - mandelbrot.b takes only *26767 milliseconds* (*27 seconds*) after a commit which condenses repeated commands together.
-- Currently, mandelbrot.b takes only *17247 milliseconds* (*17 seconds*), thanks to optimizing the decoding order a little bit; `[-]` appears much less often than `[` and `]`.
+- Currently, mandelbrot.b takes only *17247 milliseconds* (*17 seconds*), thanks to optimizing the decoding order a little bit; `[-]` appears much less often than `[` and `]`. The reason this change is so effective is that interpreters make cpu branch prediction difficult, so correctly ordering the short-circuiting is an effective way to compensate.
 
 ## Goals
 My primary goal is to execute mandelbrot.b within 10 seconds using only code transformations.
